@@ -5,6 +5,14 @@ calculator-style percentages, and a dark keypad that adapts to landscape.
 
 <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="96" alt="App icon">
 
+<p>
+  <img src="docs/screenshot-portrait.png" width="260" alt="Portrait: 12+7×3 with a live result of 33">
+  <img src="docs/screenshot-landscape.png" width="470" alt="Landscape: 9÷4 with a live result of 2.25">
+</p>
+
+The screenshots above are rendered by the test suite, not pasted in by hand —
+see *Testing* below.
+
 ## What it does
 
 - Type a whole expression (`12+7×3`) and see the answer update as you go; `=`
@@ -30,8 +38,9 @@ the Android framework itself.
 | `app/src/main/java/.../Expression.java` | The expression being typed, and the rules that keep it well-formed |
 | `app/src/main/java/.../Evaluator.java` | Recursive-descent parser and evaluator |
 | `app/src/main/java/.../Numbers.java` | Result formatting and digit grouping |
-| `app/src/test/java/...` | Unit tests for all three |
+| `app/src/test/java/...` | Unit tests for all three, plus UI tests that drive the activity |
 | `tools/make_icons.py` | Generates the launcher icons |
+| `tools/uitest/` | Runs the UI tests without the Android SDK |
 
 Keys carry their meaning in `android:tag`, so the keypad layout and the code
 that reacts to it stay independent of resource ids.
@@ -42,8 +51,19 @@ The normal way, with the Android SDK installed:
 
 ```bash
 ./gradlew assembleDebug     # app/build/outputs/apk/debug/app-debug.apk
-./gradlew test              # unit tests
+./gradlew test              # unit tests and UI tests
 ```
+
+## Testing
+
+`CalculatorUiTest` runs the real activity under Robolectric: it inflates the
+actual layout, clicks the actual buttons and reads the actual display, so the
+keypad wiring and the rendered result are covered rather than assumed.
+`ScreenshotTest` goes one step further and draws the running activity into a
+PNG under `build/screenshots/`, which is where the images at the top of this
+file come from. Both caught real layout bugs that the logic tests could not:
+a display that was left-aligned instead of right-aligned, and a landscape
+result line that was clipped in half.
 
 ### Building without the Android SDK
 
@@ -55,8 +75,15 @@ compiler from mirrors that don't need the SDK manager:
 ```bash
 sudo apt-get install aapt apksigner zipalign   # Debian/Ubuntu
 tools/build-apk.sh                             # build/calculator-debug.apk
-tools/run-tests.sh                             # unit tests, no Gradle
+tools/run-tests.sh                             # logic tests, no Gradle
+tools/run-ui-tests.sh                          # every test, including the UI ones
 ```
+
+`tools/run-ui-tests.sh` needs Gradle, because Robolectric has a large
+dependency tree. AndroidX is published only to Google's Maven, so the small
+part of `androidx.test` that Robolectric calls is reimplemented under
+`tools/uitest/src/main/java/androidx/`; everything else comes from Maven
+Central.
 
 Both scripts cache their downloads in `build/toolchain/`.
 

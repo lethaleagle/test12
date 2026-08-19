@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 #
-# Runs the unit tests without Gradle.
+# Runs the logic tests without Gradle.
 #
 # `./gradlew test` is the usual command; this script is the equivalent for
-# machines that can't reach the Android SDK. The classes under test are plain
-# Java with no Android dependencies, so they compile and run on any JDK.
+# machines that can't reach the Android SDK. It covers the classes that are
+# plain Java with no Android dependencies, so it needs nothing but a JDK.
+# The UI tests need Robolectric and the Android framework — run those with
+# tools/run-ui-tests.sh.
 #
 # Usage: tools/run-tests.sh
 
@@ -25,10 +27,10 @@ if [ ! -f "$JUNIT_JAR" ]; then
     curl -fsSL "$JUNIT_URL" -o "$JUNIT_JAR.tmp" && mv "$JUNIT_JAR.tmp" "$JUNIT_JAR"
 fi
 
-# MainActivity is the only class that touches the Android framework, and it holds
-# no logic of its own worth testing off-device.
+# Only the Android-free classes and their tests; MainActivity and the UI tests
+# need the framework on the classpath, which tools/run-ui-tests.sh provides.
 javac -encoding UTF-8 -nowarn -d "$WORK" -cp "$JUNIT_JAR" \
     "$PROJECT_ROOT"/app/src/main/java/com/example/calculator/{Evaluator,Numbers,Expression}.java \
-    "$PROJECT_ROOT"/app/src/test/java/com/example/calculator/*.java
+    "$PROJECT_ROOT"/app/src/test/java/com/example/calculator/{EvaluatorTest,NumbersTest,ExpressionTest}.java
 
 java -jar "$JUNIT_JAR" execute --class-path "$WORK" --scan-class-path --details=summary

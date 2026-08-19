@@ -27,9 +27,9 @@
                 android:id="@+id/expression"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
                 android:contentDescription="@string/desc_expression"
                 android:fontFamily="sans-serif-light"
+                android:gravity="end"
                 android:maxLines="1"
                 android:textColor="@color/text_primary"
                 android:textSize="@dimen/expression_text" />

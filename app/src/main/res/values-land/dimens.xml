@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Landscape gives the keypad far less height, so everything tightens up. -->
-    <dimen name="display_padding">16dp</dimen>
-    <dimen name="expression_text">34sp</dimen>
-    <dimen name="result_text">20sp</dimen>
+    <dimen name="display_padding">12dp</dimen>
+    <dimen name="expression_text">30sp</dimen>
+    <dimen name="result_text">18sp</dimen>
     <dimen name="keypad_padding">8dp</dimen>
     <dimen name="key_margin">4dp</dimen>
     <dimen name="key_text">22sp</dimen>

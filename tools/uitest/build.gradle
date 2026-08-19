@@ -1,0 +1,93 @@
+// Runs the unit tests — including the Robolectric UI tests — without the
+// Android Gradle Plugin, for machines that can't reach Google's Maven.
+//
+// On a normal machine `./gradlew test` from the project root does all of this;
+// this project exists only to make the same tests runnable without the SDK.
+// Everything it needs comes from Maven Central, apart from the resource APK
+// and R.java, which tools/build-apk.sh produces.
+
+plugins { id 'java' }
+
+repositories { mavenCentral() }
+
+def projectRoot = rootProject.projectDir.parentFile.parentFile
+def buildDirNoSdk = new File(projectRoot, 'build/no-sdk')
+def androidJar = new File(projectRoot, 'build/toolchain/android-34.jar')
+
+// AndroidX artifacts are published only to Google's Maven. Robolectric touches
+// a small, well-defined part of androidx.test, reimplemented under
+// src/main/java/androidx — enough for it to start and drive an activity.
+configurations.all {
+    exclude group: 'androidx.test'
+    exclude group: 'androidx.test.espresso'
+    exclude group: 'androidx.annotation'
+    exclude group: 'androidx.core'
+    exclude group: 'androidx.lifecycle'
+    exclude group: 'androidx.arch.core'
+    exclude group: 'androidx.tracing'
+    exclude group: 'androidx.legacy'
+}
+
+sourceSets {
+    main {
+        java.srcDirs = [
+            'src/main/java',                                  // androidx.test stand-ins
+            new File(projectRoot, 'app/src/main/java'),
+            new File(buildDirNoSdk, 'gen'),                    // R.java from aapt2
+        ]
+    }
+    test {
+        java.srcDirs = [new File(projectRoot, 'app/src/test/java')]
+    }
+}
+
+dependencies {
+    compileOnly files(androidJar)
+    testCompileOnly files(androidJar)
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.robolectric:robolectric:4.12.2'
+
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Real AOSP bytecode, standing in for the mockable android.jar that AGP
+    // would otherwise put on the unit test classpath.
+    testRuntimeOnly 'org.robolectric:android-all:14-robolectric-10818077'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+// Robolectric reads the app's manifest and compiled resources from the file
+// AGP normally generates for it.
+def generatedTestResources = layout.buildDirectory.dir('generated-test-resources')
+def writeRobolectricConfig = tasks.register('writeRobolectricConfig') {
+    outputs.dir(generatedTestResources)
+    doLast {
+        def target = new File(generatedTestResources.get().asFile,
+                'com/android/tools/test_config.properties')
+        target.parentFile.mkdirs()
+        target.text = """\
+android_merged_manifest=${new File(buildDirNoSdk, 'AndroidManifest.xml')}
+android_resource_apk=${new File(buildDirNoSdk, 'base.apk')}
+android_custom_package=com.example.calculator
+"""
+    }
+}
+
+sourceSets.test.output.dir(generatedTestResources, builtBy: writeRobolectricConfig)
+
+test {
+    dependsOn writeRobolectricConfig
+    useJUnitPlatform()
+    systemProperty 'screenshot.dir',
+            new File(projectRoot, 'build/screenshots').absolutePath
+    testLogging {
+        showStandardStreams = true
+        events 'passed', 'failed', 'skipped'
+        exceptionFormat 'full'
+    }
+}
