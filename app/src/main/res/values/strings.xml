@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calculator</string>
+
+    <string name="key_clear">AC</string>
+    <string name="key_delete">⌫</string>
+    <string name="key_percent">%</string>
+    <string name="key_divide">÷</string>
+    <string name="key_multiply">×</string>
+    <string name="key_subtract">−</string>
+    <string name="key_add">+</string>
+    <string name="key_sign">±</string>
+    <string name="key_decimal">.</string>
+    <string name="key_equals">=</string>
+
+    <string name="desc_clear">Clear all</string>
+    <string name="desc_delete">Delete last entry</string>
+    <string name="desc_percent">Percent</string>
+    <string name="desc_divide">Divide</string>
+    <string name="desc_multiply">Multiply</string>
+    <string name="desc_subtract">Subtract</string>
+    <string name="desc_add">Add</string>
+    <string name="desc_sign">Change sign</string>
+    <string name="desc_decimal">Decimal point</string>
+    <string name="desc_equals">Equals</string>
+    <string name="desc_expression">Current expression</string>
+    <string name="desc_result">Result</string>
+
+    <string name="error_incomplete">Incomplete expression</string>
+</resources>
